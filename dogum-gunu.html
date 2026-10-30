@@ -33,36 +33,27 @@ function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidt
 addEventListener('resize',resize);resize();
 function draw(t){const dt=Math.min((t-last)/16.67||1,2);last=t;ctx.clearRect(0,0,innerWidth,innerHeight);pieces=pieces.filter(p=>p.life>0&&p.y<innerHeight+20);for(const p of pieces){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.045*dt;p.r+=p.spin*dt;p.life-=dt;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.globalAlpha=Math.min(p.life/35,1);ctx.fillStyle=p.color;ctx.fillRect(-p.size/2,-2,p.size,4);ctx.restore()}if(pieces.length)frame=requestAnimationFrame(draw);else frame=null}
 document.querySelector('#wish').addEventListener('click',()=>{document.querySelector('#question').textContent='Dileğin gökyüzüne emanet.';document.querySelector('#status').textContent='Umarım bu yıl, en güzel “iyi ki”lerinle dolu olur.';if(reduced.matches)return;pieces=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight*.56,vx:(Math.random()-.5)*13,vy:-3-Math.random()*10,r:Math.random()*6,spin:(Math.random()-.5)*.15,life:180+Math.random()*70,size:4+Math.random()*5,color:['#e7c798','#f9ebd3','#b8afcb','#8e9fbc'][Math.floor(Math.random()*4)]}));if(!frame){last=performance.now();frame=requestAnimationFrame(draw)}});
-
 const sound = document.querySelector('#sound');
 const audio = new Audio('./music.mp3');
 
 audio.loop = true;
-audio.preload = 'none';
+audio.volume = 0.7;
 
 sound.addEventListener('click', async () => {
-  sound.disabled = true;
-
   try {
     if (audio.paused) {
       await audio.play();
+      sound.textContent = 'Ⅱ Müziği durdur';
+      sound.setAttribute('aria-pressed', 'true');
     } else {
       audio.pause();
+      sound.textContent = '♫ Müziği aç';
+      sound.setAttribute('aria-pressed', 'false');
     }
-
-    const playing = !audio.paused;
-    sound.textContent = playing
-      ? 'Ⅱ  Müziği durdur'
-      : '♫  Müziği aç';
-    sound.setAttribute('aria-pressed', String(playing));
   } catch (error) {
-    document.querySelector('#status').textContent =
-      'Müzik başlatılamadı.';
-  } finally {
-    sound.disabled = false;
+    console.error('MP3 çalınamadı:', error);
   }
 });
-
 </script>
 </body>
 </html>
