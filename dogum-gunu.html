@@ -33,9 +33,36 @@ function resize(){const d=Math.min(devicePixelRatio||1,2);canvas.width=innerWidt
 addEventListener('resize',resize);resize();
 function draw(t){const dt=Math.min((t-last)/16.67||1,2);last=t;ctx.clearRect(0,0,innerWidth,innerHeight);pieces=pieces.filter(p=>p.life>0&&p.y<innerHeight+20);for(const p of pieces){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=.045*dt;p.r+=p.spin*dt;p.life-=dt;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.globalAlpha=Math.min(p.life/35,1);ctx.fillStyle=p.color;ctx.fillRect(-p.size/2,-2,p.size,4);ctx.restore()}if(pieces.length)frame=requestAnimationFrame(draw);else frame=null}
 document.querySelector('#wish').addEventListener('click',()=>{document.querySelector('#question').textContent='Dileğin gökyüzüne emanet.';document.querySelector('#status').textContent='Umarım bu yıl, en güzel “iyi ki”lerinle dolu olur.';if(reduced.matches)return;pieces=Array.from({length:140},()=>({x:innerWidth/2,y:innerHeight*.56,vx:(Math.random()-.5)*13,vy:-3-Math.random()*10,r:Math.random()*6,spin:(Math.random()-.5)*.15,life:180+Math.random()*70,size:4+Math.random()*5,color:['#e7c798','#f9ebd3','#b8afcb','#8e9fbc'][Math.floor(Math.random()*4)]}));if(!frame){last=performance.now();frame=requestAnimationFrame(draw)}});
-let audio=null,timer=null,playing=false,index=0;const sound=document.querySelector('#sound');const notes=[261.63,329.63,392,523.25,440,392,329.63,293.66,261.63,349.23,440,523.25,493.88,392,329.63,293.66];
-function chime(){if(!playing)return;const now=audio.currentTime,o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=notes[index++%notes.length];g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(.075,now+.03);g.gain.exponentialRampToValueAtTime(.001,now+1.8);o.connect(g);g.connect(audio.destination);o.start(now);o.stop(now+1.9);o.onended=()=>{o.disconnect();g.disconnect()}}
-sound.addEventListener('click',async()=>{sound.disabled=true;try{if(playing){playing=false;clearInterval(timer);await audio.suspend()}else{audio??=new(window.AudioContext||window.webkitAudioContext)();await audio.resume();playing=true;chime();timer=setInterval(chime,650)}sound.textContent=playing?'Ⅱ  Müziği durdur':'♫  Müziği aç';sound.setAttribute('aria-pressed',String(playing))}catch(e){playing=false;clearInterval(timer);document.querySelector('#status').textContent='Bu tarayıcıda müzik açılamadı.'}finally{sound.disabled=false}});
+
+const sound = document.querySelector('#sound');
+const audio = new Audio('./music.mp3');
+
+audio.loop = true;
+audio.preload = 'none';
+
+sound.addEventListener('click', async () => {
+  sound.disabled = true;
+
+  try {
+    if (audio.paused) {
+      await audio.play();
+    } else {
+      audio.pause();
+    }
+
+    const playing = !audio.paused;
+    sound.textContent = playing
+      ? 'Ⅱ  Müziği durdur'
+      : '♫  Müziği aç';
+    sound.setAttribute('aria-pressed', String(playing));
+  } catch (error) {
+    document.querySelector('#status').textContent =
+      'Müzik başlatılamadı.';
+  } finally {
+    sound.disabled = false;
+  }
+});
+
 </script>
 </body>
 </html>
